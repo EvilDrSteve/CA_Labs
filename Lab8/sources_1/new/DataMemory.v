@@ -1,38 +1,22 @@
 `timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 08.03.2026 20:30:59
-// Design Name: 
-// Module Name: DataMemory
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
-// Description: 
-// 
-// Dependencies: 
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-// 
-//////////////////////////////////////////////////////////////////////////////////
-
-
 module DataMemory(
-    input clk, memWrite,
+    input clk, rst, memWrite,
     input [7:0] address,
     input [31:0]  writeData,
     output [31:0] readData
     );
     
-    reg [31:0] memory [255:0];
-
+    reg [31:0] memory [511:0];
+    integer i;
+    
     always @(posedge clk) begin
-        if(memWrite)
-            memory[address[7:0]] <= writeData;
+        if (rst) begin
+            for (i = 0; i < 512; i = i + 1)
+                memory[i] <= 32'b0;
+        end
+        else if (memWrite)
+            memory[address] <= writeData;
     end
-    assign readData = memory[address[7:0]];
-
+    
+    assign readData = memory[address];
 endmodule

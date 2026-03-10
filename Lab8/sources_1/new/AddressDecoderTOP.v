@@ -59,6 +59,7 @@ module AddressDecoderTOP(
     wire [31:0] dm_readData;
     DataMemory dataMem(
         .clk(clk),
+        .rst(rst),
         .memWrite(dataMemWrite),
         .address(address[7:0]),
         .writeData(writeData),
