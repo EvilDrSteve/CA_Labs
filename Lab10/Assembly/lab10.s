@@ -1,9 +1,9 @@
 .globl main
 .text
 main:
-    li   x8,  0x200        # LED address
-    li   x9,  0x300        # switch address
-    li   x18, 0x400        # reset address
+    li   x8,  0x20        # LED address
+    li   x9,  0x30        # switch address
+    li   x18, 0x40        # reset address
 
     # beq x0, x0, SkipSetup
     addi x5, x0, 10
@@ -18,6 +18,7 @@ idle:
     #call countdown
     mv   x10, x7            # pass latched value as argument
     jal  x1, countdown
+    sw   x0, 0(x9)         # clear switches so we don't re-enter
 
     j    idle
 
