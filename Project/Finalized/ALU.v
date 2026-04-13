@@ -17,7 +17,8 @@ module ALU(
     input wire [31:0]      b,
     input wire [3:0]       aluControl,  // operation select
     output reg [31:0]      aluResult,   // computation result
-    output wire            zero         // 1 when a == b
+    output wire            zero,        // 1 when a == b
+    output wire            lessThan     // 1 when a < b
 );
 
     always @(*) begin
@@ -26,14 +27,16 @@ module ALU(
             4'b0001: aluResult = a | b;         // OR
             4'b0010: aluResult = a + b;         // ADD
             4'b0110: aluResult = a - b;         // SUB
-            4'b0011: aluResult = a ^ b;         // XOR
-            4'b0100: aluResult = a << b[4:0];   // SLL
-            4'b0101: aluResult = a >> b[4:0];   // SRL
+            4'b0100: aluResult = a ^ b;         // XOR
+            4'b0101: aluResult = a << b[4:0];   // SLL
+            4'b0111: aluResult = a >> b[4:0];   // SRL
             default: aluResult = 32'b0;
         endcase
+
     end
 
     // Zero flag: asserted when a equals b (used by BEQ)
     assign zero = ((a - b) == 0);
+    assign lessThan = ($signed(a) < $signed(b));
 
 endmodule

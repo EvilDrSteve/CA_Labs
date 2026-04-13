@@ -40,7 +40,7 @@ module TopLevelProcessor(
     wire [3:0]  aluOperation;   // from ALUControl to ALU
     wire        pcSrc;          // branch taken?
     wire        zeroFlag;       // ALU zero output
-
+    wire        lessThan;        // ALU a < b output
     // Datapath
     wire [31:0] immExtended;    // sign-extended immediate
     wire [31:0] readData1;      // rs1 value
@@ -59,7 +59,14 @@ module TopLevelProcessor(
     // Branch is taken when the branch control signal is set AND
     // the ALU zero flag indicates equality (for BEQ) or the
     // ALU zero flag indicates inequality (for BNE).
-    assign pcSrc = (branch & (zeroFlag ^ instruction[12])) | jump;
+
+    wire takeBranch;
+    assign takeBranch =
+        (instruction[14:12] == 3'b000) ? zeroFlag        // BEQ
+        : (instruction[14:12] == 3'b001) ? ~zeroFlag       // BNE
+        : (instruction[14:12] == 3'b101) ? ~lessThan       // BGE (a >= b)
+        : 1'b0;
+    assign pcSrc = (branch & takeBranch) | jump;
     assign currentInstruction = instruction;
     // ==============================================
     // Module Instantiations
@@ -165,7 +172,8 @@ module TopLevelProcessor(
         .b(aluInputB),
         .aluControl(aluOperation),
         .aluResult(aluResult),
-        .zero(zeroFlag)
+        .zero(zeroFlag),
+        .lessThan(lessThan)
     );
 
     // Address Decoder

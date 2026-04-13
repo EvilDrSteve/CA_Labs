@@ -65,7 +65,7 @@ module MainControl(
                 aluOp    = 2'b00; // ADD for address calc
             end
 
-            7'b1100011: begin // Branch (BEQ)
+            7'b1100011: begin // Branch (BEQ, BNE, BGE)
                 aluSrc   = 1'b0;  // compare rs1 and rs2
                 branch   = 1'b1;
                 aluOp    = 2'b01; // SUB for comparison

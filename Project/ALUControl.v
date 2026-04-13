@@ -42,8 +42,15 @@ module ALUControl(
                 endcase
             end
 
-            2'b11: // I-type ALU (ADDI) — behaves like ADD
-                aluControl = 4'b0010;
+            2'b11: begin // I-type ALU
+                case (funct3)
+                    3'b000: aluControl = 4'b0010; // ADDI
+                    3'b101: aluControl = 4'b0111; // SRLI (same ALU op as SRL)
+                    3'b001: aluControl = 4'b0101; // SLLI
+                    default: aluControl = 4'b0010;
+                endcase
+            end
+
 
             default:
                 aluControl = 4'b0000;
