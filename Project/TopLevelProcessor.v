@@ -5,7 +5,12 @@
 // decode/control, register file, ALU, data memory, and writeback.
 module TopLevelProcessor(
     input wire clk,
-    input wire reset
+    input wire reset,
+    input [15:0] switchesIn, //To be stored in memory 0x30
+
+    output [31:0] currentInstruction,
+    output [31:0] pcOut,
+    output [15:0] ledsOut //To be loaded from memory 0x20
 );
 
     // ==============================================
@@ -13,7 +18,7 @@ module TopLevelProcessor(
     // ==============================================
 
     // Program flow
-    wire [31:0] pcOut;          // current PC
+    // wire [31:0] pcOut;          // current PC
     wire [31:0] pcPlus4;        // PC + 4 (next sequential)
     wire [31:0] branchTarget;   // PC + (imm << 1)
     wire [31:0] pcBranchOrSeq;  // PC value selection between branch or sequential
@@ -42,9 +47,12 @@ module TopLevelProcessor(
     wire [31:0] readData2;      // rs2 value
     wire [31:0] aluInputB;      // ALU second operand (rs2 or imm)
     wire [31:0] aluResult;      // ALU output
-    wire [31:0] memReadData;    // data memory read output
+    wire [31:0] memReadData;    // final read output (either switch or memory)
+    wire [31:0] memReadDataRaw; // data memory read output
     wire [31:0] writeBackData;  // data written to register file
+    wire [31:0] swReadData;     // data read from switches
 
+    wire dataMemWrite, dataMemRead, ledWrite, switchReadEnable;
     // ==============================================
     // Branch Logic
     // ==============================================
@@ -52,10 +60,11 @@ module TopLevelProcessor(
     // the ALU zero flag indicates equality (for BEQ) or the
     // ALU zero flag indicates inequality (for BNE).
     assign pcSrc = (branch & (zeroFlag ^ instruction[12])) | jump;
-
+    assign currentInstruction = instruction;
     // ==============================================
     // Module Instantiations
     // ==============================================
+
 
     // --- Program Counter ---
     ProgramCounter u_pc (
@@ -159,14 +168,60 @@ module TopLevelProcessor(
         .zero(zeroFlag)
     );
 
+    // Address Decoder
+    AddressDecoder u_addressDecoder(
+        .address(aluResult[9:8]),
+        .writeEnable(memWrite),
+        .readEnable(memRead),
+        .dataMemWrite(dataMemWrite),
+        .dataMemRead(dataMemRead),
+        .ledWrite(ledWrite),
+        .switchReadEnable(switchReadEnable)
+    );
+
+    // LED
+    Leds u_leds(
+        .clk(clk),
+        .reset(reset),
+        .writeEnable(ledWrite),
+        .readEnable(1'b0),
+        .memAddress(30'b0),
+        .writeData(readData2),
+        .readData(),            // unused
+        .ledOut(ledsOut)
+    );
+
+
+    //Switches
+    Switches u_switches(
+        .clk(clk),
+        .rst(reset),
+        .btns(16'b0),
+        .writeData(32'b0),
+        .writeEnable(1'b0),
+        .readEnable(switchReadEnable),
+        .memAddress(30'b0),
+        .switchIn(switchesIn),
+        .readData(swReadData)
+    );
+
+
     // --- Data Memory ---
     DataMemory u_dmem (
         .clk(clk),
         .rst(reset),
-        .memWrite(memWrite),
+        .memWrite(dataMemWrite),
         .address(aluResult[7:0]),
         .writeData(readData2),
-        .readData(memReadData)
+        .readData(memReadDataRaw)
+    );
+
+    //Mux
+    Mux2 u_muxSwitchesOrMem(
+        .d0(memReadDataRaw),
+        .d1(swReadData),
+        .sel(aluResult[9:8] == 2'b10),
+        .y(memReadData)
     );
 
     // --- Writeback Mux: select ALU result or memory data or next pc value (for JALR) ---
@@ -183,12 +238,4 @@ module TopLevelProcessor(
         .sel(jump | jalr),
         .y(writeBackData)
     );
-always @(*) begin
-    $display("CTRL DEBUG opcode=%b memToReg=%b regWrite=%b memRead=%b",
-        instruction[6:0],
-        memToReg,
-        regWrite,
-        memRead
-    );
-end
 endmodule

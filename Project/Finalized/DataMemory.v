@@ -12,7 +12,7 @@ module DataMemory(
     output wire [31:0] readData         // data read (async)
 );
 
-    reg [31:0] memory [511:0];
+    (* ram_style = "block" *) reg [31:0] memory [0:511];   // DataMemory
     integer i;
 
     // Synchronous write with reset

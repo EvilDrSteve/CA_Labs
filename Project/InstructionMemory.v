@@ -9,7 +9,7 @@ module InstructionMemory(
 );
 
     // 64-word (256-byte) instruction memory
-    reg [31:0] memory [0:63];
+    (* ram_style = "block" *) reg [31:0] memory [0:63];    // InstructionMemory
 
     // Convert byte address to word address by dropping the 2 LSBs.
     // RISC-V instructions are always 4-byte aligned.

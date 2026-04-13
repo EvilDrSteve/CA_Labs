@@ -24,14 +24,16 @@ module Switches(
     assign swBytes[3] = 8'b0;
 
     // Synchronous read: assemble 4 bytes starting at memAddress
-    always @(posedge clk) begin
-        if (rst)
-            readData <= 32'b0;
-        else if (readEnable)
-            readData <= {swBytes[memAddress + 3],
-                         swBytes[memAddress + 2],
-                         swBytes[memAddress + 1],
-                         swBytes[memAddress]};
-    end
+    always @(*) readData = {16'b0, switchIn};
+
+    // always @(posedge clk) begin
+    //     if (rst)
+    //         readData <= 32'b0;
+    //     else if (readEnable)
+    //         readData <= {swBytes[memAddress + 3],
+    //                      swBytes[memAddress + 2],
+    //                      swBytes[memAddress + 1],
+    //                      swBytes[memAddress]};
+    // end
 
 endmodule

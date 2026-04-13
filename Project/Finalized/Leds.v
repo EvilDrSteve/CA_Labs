@@ -6,7 +6,7 @@
 // the combined 16 bits drive the physical LEDs on the FPGA.
 module Leds(
     input wire         clk,
-    input wire         rst,
+    input wire         reset,
     input wire [31:0]  writeData,       // data from processor
     input wire         writeEnable,     // write strobe from address decoder
     input wire         readEnable,      // read strobe (unused but kept for bus interface)
@@ -25,7 +25,7 @@ module Leds(
     end
 
     always @(posedge clk) begin
-        if (rst) begin
+        if (reset) begin
             ledLow  <= 8'b0;
             ledHigh <= 8'b0;
         end
