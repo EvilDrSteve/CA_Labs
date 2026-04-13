@@ -36,18 +36,50 @@ module FpgaTop(
 
     // Debug mode: processor sees 0. Run mode: all switches pass through.
     wire [15:0] processorSwitches = debugMode ? 16'b0 : switches;
-
+    wire [3:0] dbgAluControl;
+    wire dbgRegWrite, dbgMemRead, dbgMemWrite, dbgMemToReg,
+         dbgAluSrc, dbgBranch, dbgJump, dbgJalr,
+         dbgZero, dbgLessThan;
+    
     TopLevelProcessor u_topLevelProcessor(
         .clk(processorClk),
         .reset(reset),
         .switchesIn(processorSwitches),
         .currentInstruction(currentInstruction),
         .pcOut(pcOut),
-        .ledsOut(ledsOut)
+        .ledsOut(ledsOut),
+        .dbgAluControl(dbgAluControl),
+        .dbgRegWrite(dbgRegWrite),
+        .dbgMemRead(dbgMemRead),
+        .dbgMemWrite(dbgMemWrite),
+        .dbgMemToReg(dbgMemToReg),
+        .dbgAluSrc(dbgAluSrc),
+        .dbgBranch(dbgBranch),
+        .dbgJump(dbgJump),
+        .dbgJalr(dbgJalr),
+        .dbgZero(dbgZero),
+        .dbgLessThan(dbgLessThan)
+
     );
 
+    wire [15:0] debugLeds = {
+    dbgAluControl,   // [15:12] 4 bits
+    dbgRegWrite,     // [11]
+    dbgMemRead,      // [10]
+    dbgMemWrite,     // [9]
+    dbgMemToReg,     // [8]
+    dbgAluSrc,       // [7]
+    dbgBranch,       // [6]
+    dbgJump,         // [5]
+    dbgJalr,         // [4]
+    dbgZero,         // [3]
+    dbgLessThan,     // [2]
+    2'b00            // [1:0] spare
+};
+
+
     // LED output: leds[15] = mode indicator, others are output leds from processor
-    assign leds = {debugMode, ledsOut[14:0]};
+    assign leds = debugMode ? debugLeds : ledsOut;
 
     // Latch debug switch settings — update live in debug mode, freeze in run mode
     reg dbgSel0, dbgSel1, dbgSel2;

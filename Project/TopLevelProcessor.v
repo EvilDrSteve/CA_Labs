@@ -10,8 +10,34 @@ module TopLevelProcessor(
 
     output [31:0] currentInstruction,
     output [31:0] pcOut,
-    output [15:0] ledsOut //To be loaded from memory 0x20
+    output [15:0] ledsOut, //To be loaded from memory 0x20
+
+    output wire [3:0] dbgAluControl,
+    output wire       dbgRegWrite,
+    output wire       dbgMemRead,
+    output wire       dbgMemWrite,
+    output wire       dbgMemToReg,
+    output wire       dbgAluSrc,
+    output wire       dbgBranch,
+    output wire       dbgJump,
+    output wire       dbgJalr,
+    output wire       dbgZero,
+    output wire       dbgLessThan
 );
+
+    // Debug outputs
+
+    assign dbgAluControl = aluOperation;
+    assign dbgRegWrite   = regWrite;
+    assign dbgMemRead    = memRead;
+    assign dbgMemWrite   = memWrite;
+    assign dbgMemToReg   = memToReg;
+    assign dbgAluSrc     = aluSrc;
+    assign dbgBranch     = branch;
+    assign dbgJump       = jump;
+    assign dbgJalr       = jalr;
+    assign dbgZero       = zeroFlag;
+    assign dbgLessThan   = lessThan;
 
     // ==============================================
     // Internal Wires

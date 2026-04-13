@@ -20,7 +20,7 @@ module InstructionMemory(
 
     // Load program from hex file at simulation start
     initial begin
-        $readmemh("C:/Uni/CA_Labs/Project/programC.hex", memory);
+        $readmemh("C:/Uni/CA_Labs/Project/programA.hex", memory);
     end
 
 endmodule
