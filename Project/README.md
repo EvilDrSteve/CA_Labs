@@ -154,19 +154,21 @@ When in debug mode, `leds[15:0]` reflect the following internal signals:
 
 `aluControl` encoding: ADD=`0010`, SUB=`0110`, AND=`0000`, OR=`0001`, XOR=`0100`, SLL=`0101`, SRL/SRLI=`0111`.
 
-| Instruction | aluCtrl | rW | mR | mW | m2R | aSrc | br | j | jr |
-|-------------|:-------:|:--:|:--:|:--:|:---:|:----:|:--:|:-:|:--:|
-| R-type (ADD/SUB/…) | varies | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
-| ADDI       | 0010 | 1 | 0 | 0 | 0 | 1 | 0 | 0 | 0 |
-| SRLI       | 0111 | 1 | 0 | 0 | 0 | 1 | 0 | 0 | 0 |
-| LW         | 0010 | 1 | 1 | 0 | 1 | 1 | 0 | 0 | 0 |
-| SW         | 0010 | 0 | 0 | 1 | 0 | 1 | 0 | 0 | 0 |
-| BEQ        | 0110 | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 0 |
-| BGE        | 0110 | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 0 |
-| JAL        | 0010 | 1 | 0 | 0 | 0 | 0 | 0 | 1 | 0 |
-| JALR       | 0010 | 1 | 0 | 0 | 0 | 1 | 0 | 0 | 1 |
+| Instruction | aluCtrl | rW | mR | mW | m2R | aSrc | br | j | jr | Z | LT |
+|-------------|:-------:|:--:|:--:|:--:|:---:|:----:|:--:|:-:|:--:|:-:|:--:|
+| R-type (ADD/SUB/…) | varies | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | * | * |
+| ADDI       | 0010 | 1 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | * | * |
+| SRLI       | 0111 | 1 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | * | * |
+| LW         | 0010 | 1 | 1 | 0 | 1 | 1 | 0 | 0 | 0 | * | * |
+| SW         | 0010 | 0 | 0 | 1 | 0 | 1 | 0 | 0 | 0 | * | * |
+| BEQ (taken)    | 0110 | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 1 | * |
+| BEQ (not taken)| 0110 | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | * |
+| BGE (taken)    | 0110 | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | * | 0 |
+| BGE (not taken)| 0110 | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | * | 1 |
+| JAL        | 0010 | 1 | 0 | 0 | 0 | 0 | 0 | 1 | 0 | * | * |
+| JALR       | 0010 | 1 | 0 | 0 | 0 | 1 | 0 | 0 | 1 | * | * |
 
-(`zero` and `lessThan` reflect live ALU state and are consumed for BEQ / BGE respectively.)
+`*` = depends on operand values. `Z` is asserted when `rs1 == rs2` (drives BEQ). `LT` is asserted when `rs1 < rs2` (signed) and drives BGE — branch is taken when `LT == 0`.
 
 ## Toolchain
 
