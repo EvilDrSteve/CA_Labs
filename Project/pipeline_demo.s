@@ -1,12 +1,5 @@
-.text
-.globl main
-
-# ============================================================
-# pipeline_demo.s — Showcase program for the 3-minute video.
-# Designed so each pipeline behaviour is visible in one screen
-# of waveform (~18 cycles of useful execution).
 #
-#   PC  hex        instruction         what to point at
+#   PC  hex        instruction         
 #   --  --------   -----------------   ----------------------
 #   00  00500093   addi x1, x0, 5      pipeline fill
 #   04  00a00113   addi x2, x0, 10     pipeline fill
@@ -21,6 +14,84 @@
 #   28  04d00493   addi x9, x0, 77     branch target — executes
 #   2C  0000006f   j halt              halt loop (jumps to itself)
 # ============================================================
+
+
+
+
+
+
+.text
+.globl main
+
+main:
+    addi x1, x0, 5            # pipeline fill
+    addi x2, x0, 10           # pipeline fill
+    add  x3, x1, x2           # 5 + 10 = 15  — forwarding demo
+    add  x4, x3, x3           # 15 + 15 = 30 — back-to-back forwarding
+    sw   x4, 0(x0)            # mem[0] = 30
+    lw   x5, 0(x0)            # x5 = 30 (sets up load-use)
+    add  x6, x5, x1           # 30 + 5 = 35  — load-use stall
+    beq  x0, x0, target       # always taken — flush demo
+    addi x7, x0, 99           # FLUSHED
+    addi x8, x0, 88           # FLUSHED
+target:
+    addi x9, x0, 77           # 77
+
+halt:
+    j halt                    # spin forever
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Cycle →        1   2   3   4   5   6   7   8   9   10  11  12
+# ----------------------------------------------------------------
+# addi x1, x0, 5        IF  ID  EX  MEM WB
+# addi x2, x0, 10           IF  ID  EX  MEM WB
+# add  x3, x1, x2               IF  ID  EX  MEM WB
+# add  x4, x3, x3                   IF  ID  EX  MEM WB
+# sw   x4, 0(x0)                      IF  ID  EX  MEM WB
+# lw   x5, 0(x0)                         IF  ID  EX  MEM WB
+# add  x6, x5, x1                           IF  ID  ST  EX  MEM WB
+# beq  x0, x0, target                          IF  ID  EX  MEM WB
+# addi x7, x0, 99                                IF  ID  FL
+# addi x8, x0, 88                                    IF  FL
+# ============================================================
+# pipeline_demo.s — Showcase program for the 3-minute video.
+# Designed so each pipeline behaviour is visible in one screen
+# of waveform (~18 cycles of useful execution).
 /*
 pcOut   | Wave time (ns) | EX stage holds                     | What to highlight
 --------|----------------|------------------------------------|-------------------------------
@@ -42,33 +113,3 @@ pcOut   | Wave time (ns) | EX stage holds                     | What to highligh
 44 → 56 | 145 – 185      | (addi x9 flows)                    | addi x9 completes pipeline
 —       | 185            | —                                  | regs[9]=77; regs[7]=0, regs[8]=0 (flush confirmed)
 */
-main:
-    addi x1, x0, 5            # pipeline fill
-    addi x2, x0, 10           # pipeline fill
-    add  x3, x1, x2           # 5 + 10 = 15  — forwarding demo
-    add  x4, x3, x3           # 15 + 15 = 30 — back-to-back forwarding
-    sw   x4, 0(x0)            # mem[0] = 30
-    lw   x5, 0(x0)            # x5 = 30 (sets up load-use)
-    add  x6, x5, x1           # 30 + 5 = 35  — load-use stall
-    beq  x0, x0, target       # always taken — flush demo
-    addi x7, x0, 99           # FLUSHED
-    addi x8, x0, 88           # FLUSHED
-target:
-    addi x9, x0, 77           # 77
-
-halt:
-    j halt                    # spin forever
-
-
-# Cycle →        1   2   3   4   5   6   7   8   9   10  11  12
-# ----------------------------------------------------------------
-# addi x1, x0, 5        IF  ID  EX  MEM WB
-# addi x2, x0, 10           IF  ID  EX  MEM WB
-# add  x3, x1, x2               IF  ID  EX  MEM WB
-# add  x4, x3, x3                   IF  ID  EX  MEM WB
-# sw   x4, 0(x0)                      IF  ID  EX  MEM WB
-# lw   x5, 0(x0)                         IF  ID  EX  MEM WB
-# add  x6, x5, x1                           IF  ID  ST  EX  MEM WB
-# beq  x0, x0, target                          IF  ID  EX  MEM WB
-# addi x7, x0, 99                                IF  ID  FL
-# addi x8, x0, 88                                    IF  FL
