@@ -18,9 +18,16 @@ module RegisterFile(
 
     reg [31:0] regs [31:0]; // 32 registers, each 32 bits
 
-    // Async reads — x0 always returns 0
-    assign readData1 = (rs1 == 5'b0) ? 32'b0 : regs[rs1];
-    assign readData2 = (rs2 == 5'b0) ? 32'b0 : regs[rs2];
+    // Async reads with internal write-through bypass.
+    // When WB writes the same register that ID is reading in this cycle,
+    // return writeData directly so the read sees the new value.
+    // (Required by the pipelined processor; harmless to single-cycle.)
+    assign readData1 = (rs1 == 5'b0) ? 32'b0 :
+                       (writeEnable && rd == rs1) ? writeData :
+                       regs[rs1];
+    assign readData2 = (rs2 == 5'b0) ? 32'b0 :
+                       (writeEnable && rd == rs2) ? writeData :
+                       regs[rs2];
 
     integer i;
 
@@ -34,9 +41,5 @@ module RegisterFile(
             regs[rd] <= writeData;
         end
     end
-always @(posedge clk) begin
-    if (writeEnable) begin
-        $display("REG WRITE: x%0d = %h", rd, writeData);
-    end
-end
+
 endmodule
